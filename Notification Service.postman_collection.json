@@ -1,0 +1,236 @@
+{
+  "info": {
+    "_postman_id": "abdd298a-bec7-4b7b-8e4c-836857b1fdef",
+    "name": "Notification Service",
+    "description": "### Welcome to Postman! This is your first collection. \n\nCollections are your starting point for building and testing APIs. You can use this one to:\n\n• Group related requests\n• Test your API in real-world scenarios\n• Document and share your requests\n\nUpdate the name and overview whenever you’re ready to make it yours.\n\n[Learn more about Postman Collections.](https://learning.postman.com/docs/collections/collections-overview/)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "54457712",
+    "_collection_link": "https://go.postman.co/collection/54457712-abdd298a-bec7-4b7b-8e4c-836857b1fdef?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:4104/health",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "4104",
+          "path": [
+            "health"
+          ]
+        },
+        "description": "This is a GET request and it is used to \"get\" data from an endpoint. There is no request body for a GET request, but you can use query parameters to help specify the resource you want data on (e.g., in this request, we have `id=1`).\n\nA successful GET response will have a `200 OK` status, and should include some kind of response body - for example, HTML web content or JSON data."
+      },
+      "response": []
+    },
+    {
+      "name": "Metrics",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Successful POST request\", function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n\t\"name\": \"Add your name in the body\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:4104/metrics",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "4104",
+          "path": [
+            "metrics"
+          ]
+        },
+        "description": "This is a POST request, submitting data to an API via the request body. This request submits JSON data, and the data is reflected in the response.\n\nA successful POST request typically returns a `200 OK` or `201 Created` response code."
+      },
+      "response": []
+    },
+    {
+      "name": "Get all Notifications",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:4104/notifications",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "4104",
+          "path": [
+            "notifications"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get a Notification",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:4104/notifications/4",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "4104",
+          "path": [
+            "notifications",
+            "4"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Notification",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"eventId\": \"evt_generic_001\",\n  \"eventType\": \"DEPOSIT_COMPLETED\",\n  \"sourceService\": \"transaction-service\",\n  \"transactionType\": \"DEPOSIT\",\n  \"correlationId\": \"corr-001\",\n  \"idempotencyKey\": \"evt_generic_001\",\n  \"channels\": [\n    \"EMAIL\"\n  ],\n  \"payload\": {\n    \"account\": {\n      \"accountId\": 1001,\n      \"accountNumber\": \"222121684341\",\n      \"customerName\": \"Vivaan Khan\",\n      \"email\": \"vivaan.khan90@inbox.com\",\n      \"phone\": \"9288353015\"\n    },\n    \"transaction\": {\n      \"amount\": {\n        \"rupees\": \"1250.00\"\n      },\n      \"reference\": \"Salary credit\"\n    }\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:4104/notifications",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "4104",
+          "path": [
+            "notifications"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "High Value Notification",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"eventId\": \"evt_high_value_001\",\n  \"eventType\": \"HIGH_VALUE_TRANSACTION\",\n  \"sourceService\": \"transaction-service\",\n  \"highValue\": true,\n  \"correlationId\": \"corr-002\",\n  \"idempotencyKey\": \"evt_high_value_001\",\n  \"channels\": [\n    \"EMAIL\"\n  ],\n  \"payload\": {\n    \"account\": {\n      \"accountId\": 1002,\n      \"accountNumber\": \"073431162417\",\n      \"customerName\": \"Aarav Kulkarni\",\n      \"email\": \"aarav.kulkarni793@mail.com\",\n      \"phone\": \"9830710619\"\n    },\n    \"transaction\": {\n      \"amount\": {\n        \"rupees\": \"75000.00\"\n      },\n      \"reference\": \"FD maturity payout\",\n      \"transactionType\": \"CREDIT\"\n    }\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:4104/notifications/high-value",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "4104",
+          "path": [
+            "notifications",
+            "high-value"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Account Status Notification",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"eventId\": \"evt_status_001\",\n  \"eventType\": \"ACCOUNT_STATUS_UPDATED\",\n  \"sourceService\": \"account-service\",\n  \"correlationId\": \"corr-003\",\n  \"idempotencyKey\": \"evt_status_001\",\n  \"channels\": [\n    \"EMAIL\"\n  ],\n  \"payload\": {\n    \"account\": {\n      \"accountId\": 8,\n      \"accountNumber\": \"546293361680\",\n      \"customerName\": \"Ishaan Mehra\",\n      \"accountStatus\": \"FROZEN\",\n      \"email\": \"ishaan.mehra@example.com\",\n      \"phone\": \"9876543210\"\n    }\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:4104/notifications/account-status",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "4104",
+          "path": [
+            "notifications",
+            "account-status"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
