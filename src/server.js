@@ -124,12 +124,9 @@ function sendError(res, error, requestId) {
 
 function createRouteTable() {
   return [
-    { method: "GET", path: "/", handler: handleRoot },
     { method: "GET", path: "/health", handler: handleHealth },
     { method: "GET", path: "/metrics", handler: handleMetrics },
-    { method: "GET", path: "/openapi.yaml", handler: handleOpenApi },
     { method: "GET", path: "/docs", handler: handleDocs },
-    { method: "GET", path: "/swagger", handler: handleDocs },
     { method: "GET", path: "/notifications", handler: handleListNotifications },
     {
       method: "GET",
@@ -153,24 +150,6 @@ function createRouteTable() {
   }));
 }
 
-async function handleRoot(context) {
-  return {
-    statusCode: 200,
-    body: {
-      success: true,
-      service: context.config.serviceName,
-      version: "1.0.0",
-      documentation: {
-        docs: "/docs",
-        swagger: "/swagger",
-        openapi: "/openapi.yaml",
-        health: "/health",
-        metrics: "/metrics",
-      },
-    },
-  };
-}
-
 async function handleHealth(context) {
   return {
     statusCode: 200,
@@ -186,20 +165,11 @@ async function handleMetrics(context) {
   };
 }
 
-async function handleOpenApi(context) {
-  const specPath = path.join(context.config.rootDir, "docs", "openapi.yaml");
-  return {
-    statusCode: 200,
-    body: fs.readFileSync(specPath, "utf8"),
-    text: true,
-    headers: {
-      "content-type": "text/yaml; charset=utf-8",
-    },
-  };
-}
-
 async function handleDocs(context) {
-  const specUrl = "/openapi.yaml";
+  const specPath = path.join(context.config.rootDir, "docs", "openapi.yaml");
+  const specText = JSON.stringify(
+    fs.readFileSync(specPath, "utf8").replace(/<\/script/gi, "<\\/script"),
+  );
   return {
     statusCode: 200,
     body: `<!doctype html>
@@ -275,20 +245,19 @@ async function handleDocs(context) {
       <section class="swagger-card">
         <header class="swagger-header">
           <h1>${context.config.serviceName} API</h1>
-          <p>
-            Interactive Swagger UI for the notification service.
-            Open the raw spec at <a href="${specUrl}">${specUrl}</a>.
-          </p>
+          <p>Interactive Swagger UI for the notification service.</p>
         </header>
         <div id="swagger-ui"></div>
       </section>
     </main>
     <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
     <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
+    <script src="https://unpkg.com/js-yaml@4/dist/js-yaml.min.js"></script>
     <script>
       window.onload = function () {
+        const specText = ${specText};
         window.ui = SwaggerUIBundle({
-          url: ${JSON.stringify(specUrl)},
+          spec: jsyaml.load(specText),
           dom_id: "#swagger-ui",
           deepLinking: true,
           displayRequestDuration: true,

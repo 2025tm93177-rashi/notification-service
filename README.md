@@ -25,8 +25,7 @@ Default port: `4104`
 
 - `GET /health`
 - `GET /metrics`
-- `GET /docs` or `GET /swagger`
-- `GET /openapi.yaml`
+- `GET /docs`
 - `POST /notifications`
 - `POST /notifications/high-value`
 - `POST /notifications/account-status`
