@@ -12,12 +12,6 @@ paths:
       responses:
         "200":
           description: Service health
-  /ready:
-    get:
-      summary: Readiness check
-      responses:
-        "200":
-          description: Service readiness
   /metrics:
     get:
       summary: Metrics endpoint
@@ -49,40 +43,226 @@ paths:
         "200":
           description: Notification list
     post:
-      summary: Process an incoming notification event
+      summary: Process a general notification event
+      description: Accepts a flexible event payload for transaction and account workflows.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/NotificationEvent"
+              $ref: "#/components/schemas/GenericNotificationRequest"
+            examples:
+              depositAlert:
+                summary: Deposit alert payload
+                value:
+                  eventId: evt_generic_001
+                  eventType: DEPOSIT_COMPLETED
+                  sourceService: transaction-service
+                  transactionType: DEPOSIT
+                  correlationId: corr-001
+                  idempotencyKey: evt_generic_001
+                  channels:
+                    - EMAIL
+                  payload:
+                    account:
+                      accountId: 1001
+                      accountNumber: "222121684341"
+                      customerName: Vivaan Khan
+                      email: vivaan.khan90@inbox.com
+                      phone: "9288353015"
+                    transaction:
+                      amount:
+                        rupees: "1250.00"
+                      reference: Salary credit
       responses:
         "201":
-          description: Notifications processed
+          description: Same response envelope as the specialized POST routes.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProcessNotificationResponse"
+              examples:
+                depositAlert:
+                  summary: Created notification
+                  value:
+                    success: true
+                    replay: false
+                    event:
+                      eventId: evt_generic_001
+                      eventType: DEPOSIT_COMPLETED
+                      sourceService: transaction-service
+                    createdCount: 1
+                    totalNotifications: 1
+                    notifications:
+                      - notificationId: 1
+                        eventId: evt_generic_001
+                        eventType: DEPOSIT_COMPLETED
+                        sourceService: transaction-service
+                        notificationType: TRANSACTION_ALERT
+                        targetRole: ACCOUNT_HOLDER
+                        targetKey: ACCOUNT_HOLDER:222121684341
+                        channel: EMAIL
+                        recipient:
+                          name: Vivaan Khan
+                          email: v***@inbox.com
+                          phone: 92******15
+                        title: Transaction alert
+                        message: "Hi Vivaan Khan, INR 1,250.00 was deposited on account 222121684341. Reference: Salary credit"
+                        payload: {}
+                        status: SENT
+                        provider: SIMULATED_EMAIL
+                        correlationId: corr-001
+                        idempotencyKey: evt_generic_001
+                        errorMessage: null
+                        createdAt: "2026-05-01 15:33:41"
+                        deliveredAt: "2026-05-01 15:33:41"
   /notifications/high-value:
     post:
       summary: Process a high-value transaction event
+      description: Accepts a high-value account or transfer payload and tags the resulting notifications as high-value.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/NotificationEvent"
+              $ref: "#/components/schemas/HighValueNotificationRequest"
+            examples:
+              highValueDeposit:
+                summary: High-value account payload
+                value:
+                  eventId: evt_high_value_001
+                  eventType: HIGH_VALUE_TRANSACTION
+                  sourceService: transaction-service
+                  highValue: true
+                  correlationId: corr-002
+                  idempotencyKey: evt_high_value_001
+                  channels:
+                    - EMAIL
+                  payload:
+                    account:
+                      accountId: 1002
+                      accountNumber: "073431162417"
+                      customerName: Aarav Kulkarni
+                      email: aarav.kulkarni793@mail.com
+                      phone: "9830710619"
+                    transaction:
+                      amount:
+                        rupees: "75000.00"
+                      reference: FD maturity payout
+                      transactionType: CREDIT
       responses:
         "201":
-          description: High-value notifications processed
+          description: Same response envelope as the generic and account-status routes.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProcessNotificationResponse"
+              examples:
+                highValueDeposit:
+                  summary: Created high-value notification
+                  value:
+                    success: true
+                    replay: false
+                    event:
+                      eventId: evt_high_value_001
+                      eventType: HIGH_VALUE_TRANSACTION
+                      sourceService: transaction-service
+                    createdCount: 1
+                    totalNotifications: 1
+                    notifications:
+                      - notificationId: 1
+                        eventId: evt_high_value_001
+                        eventType: HIGH_VALUE_TRANSACTION
+                        sourceService: transaction-service
+                        notificationType: HIGH_VALUE_TRANSACTION
+                        targetRole: ACCOUNT_HOLDER
+                        targetKey: ACCOUNT_HOLDER:073431162417
+                        channel: EMAIL
+                        recipient:
+                          name: Aarav Kulkarni
+                          email: a***@mail.com
+                          phone: 98******19
+                        title: High-value transaction alert
+                        message: "Hi Aarav Kulkarni, INR 75,000.00 was recorded on account 073431162417. Reference: FD maturity payout"
+                        payload: {}
+                        status: SENT
+                        provider: SIMULATED_EMAIL
+                        correlationId: corr-002
+                        idempotencyKey: evt_high_value_001
+                        errorMessage: null
+                        createdAt: "2026-05-01 15:34:41"
+                        deliveredAt: "2026-05-01 15:34:41"
   /notifications/account-status:
     post:
       summary: Process an account status update event
+      description: Accepts an account object with a status such as ACTIVE, FROZEN, or CLOSED.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/NotificationEvent"
+              $ref: "#/components/schemas/AccountStatusNotificationRequest"
+            examples:
+              accountFrozen:
+                summary: Frozen account payload
+                value:
+                  eventId: evt_status_001
+                  eventType: ACCOUNT_STATUS_UPDATED
+                  sourceService: account-service
+                  correlationId: corr-003
+                  idempotencyKey: evt_status_001
+                  channels:
+                    - EMAIL
+                  payload:
+                    account:
+                      accountId: 8
+                      accountNumber: "546293361680"
+                      customerName: Ishaan Mehra
+                      accountStatus: FROZEN
+                      email: ishaan.mehra@example.com
+                      phone: "9876543210"
       responses:
         "201":
-          description: Account status notifications processed
+          description: Same response envelope as the other POST routes.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProcessNotificationResponse"
+              examples:
+                accountFrozen:
+                  summary: Created account-status notification
+                  value:
+                    success: true
+                    replay: false
+                    event:
+                      eventId: evt_status_001
+                      eventType: ACCOUNT_STATUS_UPDATED
+                      sourceService: account-service
+                    createdCount: 1
+                    totalNotifications: 1
+                    notifications:
+                      - notificationId: 1
+                        eventId: evt_status_001
+                        eventType: ACCOUNT_STATUS_UPDATED
+                        sourceService: account-service
+                        notificationType: ACCOUNT_STATUS_UPDATE
+                        targetRole: ACCOUNT_HOLDER
+                        targetKey: ACCOUNT_HOLDER:546293361680
+                        channel: EMAIL
+                        recipient:
+                          name: Ishaan Mehra
+                          email: i***@example.com
+                          phone: 98******10
+                        title: Account status update
+                        message: "Hi Ishaan Mehra, your account 546293361680 status is now FROZEN."
+                        payload: {}
+                        status: SENT
+                        provider: SIMULATED_EMAIL
+                        correlationId: corr-003
+                        idempotencyKey: evt_status_001
+                        errorMessage: null
+                        createdAt: "2026-05-01 15:35:41"
+                        deliveredAt: "2026-05-01 15:35:41"
   /notifications/{notificationId}:
     get:
       summary: Get one notification log entry
@@ -99,8 +279,196 @@ paths:
           description: Notification not found
 components:
   schemas:
-    NotificationEvent:
+    NotificationChannels:
+      type: array
+      minItems: 1
+      uniqueItems: true
+      items:
+        type: string
+        enum: [EMAIL, SMS]
+    NotificationEventBase:
       type: object
+      required:
+        - eventId
+        - sourceService
+      properties:
+        eventId:
+          type: string
+          minLength: 1
+        sourceService:
+          type: string
+          minLength: 1
+        correlationId:
+          type: string
+        idempotencyKey:
+          type: string
+        channels:
+          $ref: "#/components/schemas/NotificationChannels"
+        transactionType:
+          type: string
+    GenericNotificationRequest:
+      allOf:
+        - $ref: "#/components/schemas/NotificationEventBase"
+        - type: object
+          required:
+            - eventType
+            - payload
+          properties:
+            eventType:
+              type: string
+              minLength: 1
+            highValue:
+              type: boolean
+            payload:
+              type: object
+              additionalProperties: true
+    HighValueTransferPayload:
+      type: object
+      required:
+        - amount
+        - accounts
+      properties:
+        amount:
+          oneOf:
+            - type: number
+              minimum: 0
+            - type: object
+              properties:
+                paise:
+                  type: integer
+                  minimum: 0
+                rupees:
+                  type: string
+                amount:
+                  type: string
+              additionalProperties: true
+        reference:
+          type: string
+        transactionType:
+          type: string
+        accounts:
+          type: object
+          required:
+            - source
+            - destination
+          properties:
+            source:
+              $ref: "#/components/schemas/AccountRef"
+            destination:
+              $ref: "#/components/schemas/AccountRef"
+    HighValueAccountPayload:
+      type: object
+      required:
+        - account
+        - transaction
+      properties:
+        account:
+          $ref: "#/components/schemas/AccountRef"
+        transaction:
+          type: object
+          required:
+            - amount
+          properties:
+            amount:
+              oneOf:
+                - type: number
+                  minimum: 0
+                - type: object
+                  properties:
+                    paise:
+                      type: integer
+                      minimum: 0
+                    rupees:
+                      type: string
+                    amount:
+                      type: string
+                  additionalProperties: true
+            reference:
+              type: string
+            transactionType:
+              type: string
+    HighValueNotificationRequest:
+      allOf:
+        - $ref: "#/components/schemas/NotificationEventBase"
+        - type: object
+          required:
+            - eventType
+            - payload
+          properties:
+            eventType:
+              type: string
+              enum:
+                - HIGH_VALUE_TRANSACTION
+                - TRANSFER_COMPLETED
+                - DEPOSIT_COMPLETED
+            highValue:
+              type: boolean
+              enum: [true]
+            payload:
+              oneOf:
+                - $ref: "#/components/schemas/HighValueTransferPayload"
+                - $ref: "#/components/schemas/HighValueAccountPayload"
+    AccountStatusPayload:
+      type: object
+      required:
+        - account
+      properties:
+        account:
+          type: object
+          required:
+            - accountId
+            - customerName
+            - accountStatus
+          properties:
+            accountId:
+              type: integer
+            accountNumber:
+              type: string
+            customerName:
+              type: string
+            accountStatus:
+              type: string
+            email:
+              type: string
+            phone:
+              type: string
+    AccountStatusNotificationRequest:
+      allOf:
+        - $ref: "#/components/schemas/NotificationEventBase"
+        - type: object
+          required:
+            - eventType
+            - payload
+          properties:
+            eventType:
+              type: string
+              enum:
+                - ACCOUNT_STATUS_UPDATE
+                - ACCOUNT_STATUS_UPDATED
+            payload:
+              $ref: "#/components/schemas/AccountStatusPayload"
+    AccountRef:
+      type: object
+      required:
+        - accountId
+        - customerName
+      properties:
+        accountId:
+          type: integer
+        accountNumber:
+          type: string
+        customerName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+    NotificationEventSummary:
+      type: object
+      required:
+        - eventId
+        - eventType
+        - sourceService
       properties:
         eventId:
           type: string
@@ -108,18 +476,105 @@ components:
           type: string
         sourceService:
           type: string
-        transactionType:
+    NotificationRecipient:
+      type: object
+      required:
+        - name
+      properties:
+        name:
           type: string
-        highValue:
-          type: boolean
-        correlationId:
+        email:
           type: string
-        idempotencyKey:
+          nullable: true
+        phone:
           type: string
-        channels:
-          type: array
-          items:
-            type: string
-            enum: [EMAIL, SMS]
+          nullable: true
+    NotificationRecord:
+      type: object
+      required:
+        - notificationId
+        - eventId
+        - eventType
+        - sourceService
+        - notificationType
+        - targetRole
+        - targetKey
+        - channel
+        - recipient
+        - title
+        - message
+        - payload
+        - status
+        - provider
+        - createdAt
+      properties:
+        notificationId:
+          type: integer
+        eventId:
+          type: string
+        eventType:
+          type: string
+        sourceService:
+          type: string
+        notificationType:
+          type: string
+        targetRole:
+          type: string
+        targetKey:
+          type: string
+        channel:
+          type: string
+          enum: [EMAIL, SMS]
+        recipient:
+          $ref: "#/components/schemas/NotificationRecipient"
+        title:
+          type: string
+        message:
+          type: string
         payload:
           type: object
+          additionalProperties: true
+        status:
+          type: string
+        provider:
+          type: string
+        correlationId:
+          type: string
+          nullable: true
+        idempotencyKey:
+          type: string
+          nullable: true
+        errorMessage:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          description: Timestamp in YYYY-MM-DD HH:mm:ss format.
+        deliveredAt:
+          type: string
+          nullable: true
+          description: Timestamp in YYYY-MM-DD HH:mm:ss format.
+    ProcessNotificationResponse:
+      type: object
+      required:
+        - success
+        - replay
+        - event
+        - createdCount
+        - totalNotifications
+        - notifications
+      properties:
+        success:
+          type: boolean
+        replay:
+          type: boolean
+        event:
+          $ref: "#/components/schemas/NotificationEventSummary"
+        createdCount:
+          type: integer
+        totalNotifications:
+          type: integer
+        notifications:
+          type: array
+          items:
+            $ref: "#/components/schemas/NotificationRecord"

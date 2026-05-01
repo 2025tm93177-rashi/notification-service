@@ -256,13 +256,6 @@ class NotificationService {
     };
   }
 
-  ready() {
-    return {
-      ready: true,
-      database: this.db.getHealthSnapshot(),
-    };
-  }
-
   listNotifications(query = {}) {
     const filters = this.normalizeQueryFilters(query);
     const total = this.db.countNotifications(filters);

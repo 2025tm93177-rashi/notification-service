@@ -24,7 +24,6 @@ Default port: `4104`
 ## Endpoints
 
 - `GET /health`
-- `GET /ready`
 - `GET /metrics`
 - `GET /docs` or `GET /swagger`
 - `GET /openapi.yaml`

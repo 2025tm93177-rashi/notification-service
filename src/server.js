@@ -126,7 +126,6 @@ function createRouteTable() {
   return [
     { method: "GET", path: "/", handler: handleRoot },
     { method: "GET", path: "/health", handler: handleHealth },
-    { method: "GET", path: "/ready", handler: handleReady },
     { method: "GET", path: "/metrics", handler: handleMetrics },
     { method: "GET", path: "/openapi.yaml", handler: handleOpenApi },
     { method: "GET", path: "/docs", handler: handleDocs },
@@ -161,13 +160,12 @@ async function handleRoot(context) {
       success: true,
       service: context.config.serviceName,
       version: "1.0.0",
-        documentation: {
-          docs: "/docs",
-          swagger: "/swagger",
-          openapi: "/openapi.yaml",
-          health: "/health",
-          ready: "/ready",
-          metrics: "/metrics",
+      documentation: {
+        docs: "/docs",
+        swagger: "/swagger",
+        openapi: "/openapi.yaml",
+        health: "/health",
+        metrics: "/metrics",
       },
     },
   };
@@ -177,13 +175,6 @@ async function handleHealth(context) {
   return {
     statusCode: 200,
     body: context.service.health(),
-  };
-}
-
-async function handleReady(context) {
-  return {
-    statusCode: 200,
-    body: context.service.ready(),
   };
 }
 
