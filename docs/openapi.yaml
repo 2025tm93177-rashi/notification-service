@@ -1,0 +1,125 @@
+openapi: 3.0.3
+info:
+  title: Notification Service API
+  version: 1.0.0
+  description: Banking notification service for email and SMS alerts.
+servers:
+  - url: http://localhost:4104
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: Service health
+  /ready:
+    get:
+      summary: Readiness check
+      responses:
+        "200":
+          description: Service readiness
+  /metrics:
+    get:
+      summary: Metrics endpoint
+      responses:
+        "200":
+          description: Prometheus-style metrics
+  /notifications:
+    get:
+      summary: List notification logs
+      parameters:
+        - name: eventType
+          in: query
+          schema:
+            type: string
+        - name: channel
+          in: query
+          schema:
+            type: string
+            enum: [EMAIL, SMS]
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: targetRole
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Notification list
+    post:
+      summary: Process an incoming notification event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationEvent"
+      responses:
+        "201":
+          description: Notifications processed
+  /notifications/high-value:
+    post:
+      summary: Process a high-value transaction event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationEvent"
+      responses:
+        "201":
+          description: High-value notifications processed
+  /notifications/account-status:
+    post:
+      summary: Process an account status update event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationEvent"
+      responses:
+        "201":
+          description: Account status notifications processed
+  /notifications/{notificationId}:
+    get:
+      summary: Get one notification log entry
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Notification entry
+        "404":
+          description: Notification not found
+components:
+  schemas:
+    NotificationEvent:
+      type: object
+      properties:
+        eventId:
+          type: string
+        eventType:
+          type: string
+        sourceService:
+          type: string
+        transactionType:
+          type: string
+        highValue:
+          type: boolean
+        correlationId:
+          type: string
+        idempotencyKey:
+          type: string
+        channels:
+          type: array
+          items:
+            type: string
+            enum: [EMAIL, SMS]
+        payload:
+          type: object

@@ -1,0 +1,24 @@
+services:
+  notification-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: notification-service
+    ports:
+      - "4104:4104"
+    environment:
+      PORT: 4104
+      HOST: 0.0.0.0
+      DB_PATH: /app/data/notification-service.db
+      SEED_DIR: /app/seed-data
+      TIMEZONE: Asia/Kolkata
+      HIGH_VALUE_ALERT_THRESHOLD_RUPEES: 50000
+      DEFAULT_NOTIFICATION_CHANNELS: EMAIL,SMS
+      NOTIFICATION_DELIVERY_MODE: SIMULATED
+      SERVICE_NAME: notification-service
+    volumes:
+      - notification-data:/app/data
+      - ./seed-data:/app/seed-data:ro
+
+volumes:
+  notification-data:
