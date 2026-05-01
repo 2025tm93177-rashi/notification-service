@@ -15,6 +15,6 @@
     "node": ">=24.0.0"
   },
   "dependencies": {
-    "docker": "^1.0.0"
+    "nodemon": "^3.1.14"
   }
 }

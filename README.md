@@ -26,13 +26,15 @@ Default port: `4104`
 - `GET /health`
 - `GET /ready`
 - `GET /metrics`
-- `GET /docs`
+- `GET /docs` or `GET /swagger`
 - `GET /openapi.yaml`
 - `POST /notifications`
 - `POST /notifications/high-value`
 - `POST /notifications/account-status`
 - `GET /notifications`
 - `GET /notifications/:notificationId`
+
+`/docs` now serves Swagger UI for the OpenAPI spec.
 
 ## Transaction service integration
 
@@ -54,3 +56,16 @@ Seed scripts use the provided banking CSVs to generate demo notification logs.
 docker compose up --build
 ```
 
+To seed or refresh the notification log data with the compose setup:
+
+```bash
+docker compose --profile seed run --rm notification-seed
+```
+
+Helpful runtime commands:
+
+```bash
+docker compose ps
+docker compose logs -f notification-service
+docker compose down -v
+```

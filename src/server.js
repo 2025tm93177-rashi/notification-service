@@ -130,6 +130,7 @@ function createRouteTable() {
     { method: "GET", path: "/metrics", handler: handleMetrics },
     { method: "GET", path: "/openapi.yaml", handler: handleOpenApi },
     { method: "GET", path: "/docs", handler: handleDocs },
+    { method: "GET", path: "/swagger", handler: handleDocs },
     { method: "GET", path: "/notifications", handler: handleListNotifications },
     {
       method: "GET",
@@ -160,12 +161,13 @@ async function handleRoot(context) {
       success: true,
       service: context.config.serviceName,
       version: "1.0.0",
-      documentation: {
-        docs: "/docs",
-        openapi: "/openapi.yaml",
-        health: "/health",
-        ready: "/ready",
-        metrics: "/metrics",
+        documentation: {
+          docs: "/docs",
+          swagger: "/swagger",
+          openapi: "/openapi.yaml",
+          health: "/health",
+          ready: "/ready",
+          metrics: "/metrics",
       },
     },
   };
@@ -199,35 +201,117 @@ async function handleOpenApi(context) {
     statusCode: 200,
     body: fs.readFileSync(specPath, "utf8"),
     text: true,
+    headers: {
+      "content-type": "text/yaml; charset=utf-8",
+    },
   };
 }
 
 async function handleDocs(context) {
+  const specUrl = "/openapi.yaml";
   return {
     statusCode: 200,
     body: `<!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>${context.config.serviceName} docs</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${context.config.serviceName} Swagger UI</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
     <style>
-      body { font-family: system-ui, sans-serif; margin: 40px; line-height: 1.5; }
-      code, a { background: #f5f5f5; padding: 0.15rem 0.35rem; border-radius: 4px; }
-      ul { padding-left: 20px; }
+      html {
+        box-sizing: border-box;
+        overflow-y: scroll;
+      }
+
+      *, *::before, *::after {
+        box-sizing: inherit;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at top left, rgba(59, 130, 246, 0.16), transparent 28%),
+          radial-gradient(circle at top right, rgba(15, 23, 42, 0.1), transparent 22%),
+          linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #0f172a;
+      }
+
+      .swagger-shell {
+        max-width: 1480px;
+        margin: 0 auto;
+        padding: 28px 20px 40px;
+      }
+
+      .swagger-card {
+        background: rgba(255, 255, 255, 0.84);
+        backdrop-filter: blur(14px);
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        border-radius: 24px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
+        overflow: hidden;
+      }
+
+      .swagger-header {
+        padding: 28px 28px 8px;
+      }
+
+      .swagger-header h1 {
+        margin: 0;
+        font-size: clamp(1.7rem, 2.8vw, 2.6rem);
+        line-height: 1.1;
+      }
+
+      .swagger-header p {
+        margin: 10px 0 0;
+        color: #475569;
+        max-width: 60rem;
+      }
+
+      .swagger-header a {
+        color: #0f172a;
+      }
+
+      #swagger-ui {
+        padding: 0 18px 18px;
+      }
     </style>
   </head>
   <body>
-    <h1>${context.config.serviceName}</h1>
-    <p>OpenAPI spec: <a href="/openapi.yaml">/openapi.yaml</a></p>
-    <ul>
-      <li><code>POST /notifications</code></li>
-      <li><code>POST /notifications/high-value</code></li>
-      <li><code>POST /notifications/account-status</code></li>
-      <li><code>GET /notifications</code></li>
-    </ul>
+    <main class="swagger-shell">
+      <section class="swagger-card">
+        <header class="swagger-header">
+          <h1>${context.config.serviceName} API</h1>
+          <p>
+            Interactive Swagger UI for the notification service.
+            Open the raw spec at <a href="${specUrl}">${specUrl}</a>.
+          </p>
+        </header>
+        <div id="swagger-ui"></div>
+      </section>
+    </main>
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
+    <script>
+      window.onload = function () {
+        window.ui = SwaggerUIBundle({
+          url: ${JSON.stringify(specUrl)},
+          dom_id: "#swagger-ui",
+          deepLinking: true,
+          displayRequestDuration: true,
+          presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
+          layout: "BaseLayout"
+        });
+      };
+    </script>
   </body>
 </html>`,
     text: true,
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+    },
   };
 }
 
@@ -353,10 +437,12 @@ function createServer() {
       if (result.text) {
         replyText(res, result.statusCode || 200, result.body, {
           "x-request-id": requestId,
+          ...(result.headers || {}),
         });
       } else {
         replyJson(res, result.statusCode || 200, result.body, {
           "x-request-id": requestId,
+          ...(result.headers || {}),
         });
       }
 

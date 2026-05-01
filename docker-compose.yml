@@ -4,6 +4,8 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: notification-service
+    init: true
+    restart: unless-stopped
     ports:
       - "4104:4104"
     environment:
@@ -19,6 +21,35 @@ services:
     volumes:
       - notification-data:/app/data
       - ./seed-data:/app/seed-data:ro
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'node -e "fetch(''http://127.0.0.1:4104/health'').then((res) => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))"'
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  notification-seed:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    profiles:
+      - seed
+    environment:
+      PORT: 4104
+      HOST: 0.0.0.0
+      DB_PATH: /app/data/notification-service.db
+      SEED_DIR: /app/seed-data
+      TIMEZONE: Asia/Kolkata
+      HIGH_VALUE_ALERT_THRESHOLD_RUPEES: 50000
+      DEFAULT_NOTIFICATION_CHANNELS: EMAIL,SMS
+      NOTIFICATION_DELIVERY_MODE: SIMULATED
+      SERVICE_NAME: notification-service
+    volumes:
+      - notification-data:/app/data
+      - ./seed-data:/app/seed-data:ro
+    command: ["npm", "run", "seed"]
 
 volumes:
   notification-data:

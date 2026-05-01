@@ -1,0 +1,12 @@
+node_modules
+data
+.env
+.git
+.DS_Store
+npm-debug.log
+*.log
+coverage
+*.sqlite
+*.db
+*.db-wal
+*.db-shm
